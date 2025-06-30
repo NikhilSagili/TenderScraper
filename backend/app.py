@@ -51,16 +51,45 @@ def health_check():
             "timestamp": datetime.utcnow().isoformat()
         }), 500
 
+def validate_date(date_str):
+    """Validate and parse date string."""
+    try:
+        return datetime.strptime(date_str, '%Y-%m-%d')
+    except (ValueError, TypeError):
+        return None
+
 @app.route('/scrape', methods=['POST'])
 def scrape():
     """API endpoint to trigger the scraper."""
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid input"}), 400
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No input data provided"}), 400
 
-    target_url = data.get('url')
-    start_date_str = data.get('startDate')
-    end_date_str = data.get('endDate') # Note: end_date is not used in the current scraper logic, but we get it for future use.
+        target_url = data.get('url')
+        start_date_str = data.get('startDate')
+        end_date_str = data.get('endDate')
+
+        # Input validation
+        if not target_url:
+            return jsonify({"error": "URL is required"}), 400
+            
+        start_date = validate_date(start_date_str)
+        end_date = validate_date(end_date_str)
+        
+        if not start_date or not end_date:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
+            
+        if start_date > end_date:
+            return jsonify({"error": "Start date cannot be after end date"}), 400
+            
+        # Add rate limiting check if needed
+        # if is_rate_limited():
+        #     return jsonify({"error": "Too many requests. Please try again later."}), 429
+            
+    except Exception as e:
+        app.logger.error(f"Error in input validation: {str(e)}")
+        return jsonify({"error": f"Invalid request: {str(e)}"}), 400 # Note: end_date is not used in the current scraper logic, but we get it for future use.
 
     if not target_url or not start_date_str:
         return jsonify({"error": "URL and start date are required"}), 400

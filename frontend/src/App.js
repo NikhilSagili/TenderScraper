@@ -25,13 +25,49 @@ function App() {
                 url,
                 startDate,
                 endDate,
+            }, {
+                timeout: 300000, // 5 minutes timeout
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                onUploadProgress: (progressEvent) => {
+                    // Optional: Add progress tracking if needed
+                    const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    console.log(`Upload Progress: ${progress}%`);
+                },
+                onDownloadProgress: (progressEvent) => {
+                    // Optional: Add progress tracking if needed
+                    const progress = progressEvent.loaded ? Math.round((progressEvent.loaded * 100) / progressEvent.total) : 0;
+                    console.log(`Download Progress: ${progress}%`);
+                }
             });
-            setBids(response.data);
+            
+            if (response.data && response.data.error) {
+                throw new Error(response.data.error);
+            }
+            
+            setBids(response.data || []);
         } catch (err) {
-            setError('Failed to scrape data. Make sure the backend server is running.');
-            console.error(err);
+            let errorMessage = 'Failed to scrape data. ';
+            
+            if (err.code === 'ECONNABORTED') {
+                errorMessage += 'The request took too long. The server might be processing a large amount of data.';
+            } else if (err.response) {
+                // Server responded with an error status code
+                errorMessage += `Server responded with status ${err.response.status}: ${err.response.data?.error || 'Unknown error'}`;
+            } else if (err.request) {
+                // Request was made but no response received
+                errorMessage += 'No response received from the server. The backend might be down or unreachable.';
+            } else {
+                // Something else caused the error
+                errorMessage += err.message || 'An unknown error occurred.';
+            }
+            
+            setError(errorMessage);
+            console.error('Scraping error:', err);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const handleHealthCheck = async () => {
@@ -66,17 +102,6 @@ function App() {
         <div className="App">
             <header className="App-header">
                 <h1>GeM Bid Scraper</h1>
-                <div className="health-section">
-                    <button onClick={handleHealthCheck} className="health-btn">
-                        Check Backend Status
-                    </button>
-                    {healthStatus && (
-                        <span className={`health-status ${healthStatus.status === 'healthy' ? 'healthy' : 'error'}`}>
-                            {healthStatus.status === 'healthy' ? '✅ Backend is healthy' : '❌ Backend error'}
-                            {healthStatus.timestamp && ` (${new Date(healthStatus.timestamp).toLocaleString()})`}
-                        </span>
-                    )}
-                </div>
             </header>
             <main>
                 <div className="container">
@@ -107,9 +132,20 @@ function App() {
                             onChange={(e) => setEndDate(e.target.value)}
                         />
                     </div>
-                    <button onClick={handleScrape} disabled={loading}>
-                        {loading ? 'Scraping...' : 'Scrape Bids'}
-                    </button>
+                    <div className="button-group">
+                        <button onClick={handleScrape} disabled={loading}>
+                            {loading ? 'Scraping...' : 'Scrape Bids'}
+                        </button>
+                        <button onClick={handleHealthCheck} className="health-btn">
+                            Check Backend Status
+                        </button>
+                    </div>
+                    {healthStatus && (
+                        <div className={`health-status ${healthStatus.status === 'healthy' ? 'healthy' : 'error'}`}>
+                            {healthStatus.status === 'healthy' ? '✅ Backend is healthy' : '❌ Backend error'}
+                            {healthStatus.timestamp && ` (${new Date(healthStatus.timestamp).toLocaleString()})`}
+                        </div>
+                    )}
                 </div>
 
                 {error && <p className="error">{error}</p>}

@@ -32,5 +32,17 @@ COPY . .
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:10000/health || exit 1
 
-# Run Gunicorn with more workers and timeout settings
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "120", "--workers", "2", "--threads", "4", "--worker-class", "gthread", "app:app"]
+# Run Gunicorn with optimized settings for long-running tasks
+CMD ["gunicorn", \
+     "--bind", "0.0.0.0:10000", \
+     "--timeout", "300", \
+     "--workers", "1", \
+     "--threads", "2", \
+     "--worker-class", "gthread", \
+     "--keep-alive", "5", \
+     "--max-requests", "1000", \
+     "--max-requests-jitter", "50", \
+     "--log-level", "info", \
+     "--error-logfile", "-", \
+     "--access-logfile", "-", \
+     "app:app"]

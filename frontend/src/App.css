@@ -53,24 +53,40 @@ body {
 
 .health-status {
     font-size: 14px;
-    padding: 5px 10px;
+    padding: 10px;
     border-radius: 4px;
     font-weight: 500;
+    margin-top: 10px;
+    text-align: center;
 }
 
 .health-status.healthy {
     color: #2f855a;
     background-color: #f0fff4;
+    border: 1px solid #c6f6d5;
 }
 
 .health-status.error {
     color: #c53030;
     background-color: #fff5f5;
+    border: 1px solid #fed7d7;
 }
 
 main {
     max-width: 1200px;
     margin: 0 auto;
+}
+
+.button-group {
+    display: flex;
+    gap: 15px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.button-group button {
+    flex: 1;
+    min-width: 120px;
 }
 
 .controls {
