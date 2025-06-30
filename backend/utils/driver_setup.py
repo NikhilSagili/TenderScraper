@@ -6,7 +6,7 @@ from selenium.webdriver.chrome.options import Options
 def get_webdriver():
     """Sets up and returns a Selenium Chrome WebDriver instance."""
     chrome_options = Options()
-    # chrome_options.add_argument("--headless") # Run in headless mode
+    chrome_options.add_argument("--headless") # Run in headless mode
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
     chrome_options.add_argument('--start-maximized')
