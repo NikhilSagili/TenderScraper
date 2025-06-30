@@ -102,30 +102,49 @@ def scrape():
 
     driver = None
     try:
+        print("Initializing webdriver...")
         driver = get_webdriver()
+        print("Webdriver initialized successfully")
+        
+        print("Initializing scraper...")
         scraper = GemBidScraper(driver)
+        print("Scraper initialized successfully")
         
-        # The scraper's load_page method uses a hardcoded URL.
-        # For this app, we can either modify the scraper or just acknowledge it.
-        # For now, we'll assume the URL from the frontend is for confirmation, 
-        # and the scraper will use its own configured URL.
-        scraper.load_page()
-        
-        # The state is also hardcoded. This could be another parameter in the future.
-        scraper.apply_filters_and_search(state="ANDHRA PRADESH")
-        
-        bids_df = scraper.scrape_bids(stop_date=stop_date)
-        
-        if bids_df.empty:
-            return jsonify([])
+        try:
+            print("Loading page...")
+            scraper.load_page()
+            print("Page loaded successfully")
+            
+            print("Applying filters and searching...")
+            scraper.apply_filters_and_search(state="ANDHRA PRADESH")
+            print("Filters applied successfully")
+            
+            print(f"Starting to scrape bids until {stop_date}...")
+            bids_df = scraper.scrape_bids(stop_date=stop_date)
+            print(f"Scraping completed. Found {len(bids_df)} bids")
+            
+            if bids_df.empty:
+                print("No bids found for the given criteria")
+                return jsonify({"message": "No bids found for the given criteria", "data": []}), 200
 
-        # Convert DataFrame to JSON
-        result = bids_df.to_json(orient="records")
-        return result
-
+            # Convert DataFrame to list of dicts for JSON serialization
+            print("Converting results to JSON...")
+            result = bids_df.to_dict(orient="records")
+            return jsonify({"message": "Success", "data": result}), 200
+            
+        except Exception as scrape_error:
+            app.logger.error(f"Error during scraping: {str(scrape_error)}", exc_info=True)
+            return jsonify({
+                "error": "Scraping failed",
+                "details": str(scrape_error)
+            }), 500
+            
     except Exception as e:
-        print(f"An error occurred during scraping: {e}")
-        return jsonify({"error": "An internal error occurred", "details": str(e)}), 500
+        app.logger.error(f"Error initializing scraper: {str(e)}", exc_info=True)
+        return jsonify({
+            "error": "Failed to initialize scraper",
+            "details": str(e)
+        }), 500
     finally:
         if driver:
             driver.quit()

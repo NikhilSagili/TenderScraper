@@ -26,7 +26,7 @@ function App() {
                 startDate,
                 endDate,
             }, {
-                timeout: 300000, // 5 minutes timeout
+                timeout: 900000, // 5 minutes timeout
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -42,11 +42,17 @@ function App() {
                 }
             });
             
-            if (response.data && response.data.error) {
-                throw new Error(response.data.error);
+            if (response.data.error) {
+                throw new Error(response.data.details || response.data.error);
             }
             
-            setBids(response.data || []);
+            // The backend now returns data in response.data.data
+            setBids(response.data.data || []);
+            
+            // Show a success message if no bids were found
+            if (response.data.message && response.data.message.includes('No bids')) {
+                setError(response.data.message);
+            }
         } catch (err) {
             let errorMessage = 'Failed to scrape data. ';
             
