@@ -10,6 +10,10 @@ function App() {
     const [bids, setBids] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [healthStatus, setHealthStatus] = useState('');
+    
+    // Backend URL - update this to your Render URL
+    const BACKEND_URL = process.env.REACT_APP_API_URL || 'https://gem-scraper-backend.onrender.com';
 
     const handleScrape = async () => {
         setLoading(true);
@@ -17,8 +21,6 @@ function App() {
         setBids([]);
 
         try {
-            // Use the Render backend URL - replace 'your-render-app-url' with your actual Render URL
-            const BACKEND_URL = 'https://your-render-app.onrender.com';
             const response = await axios.post(`${BACKEND_URL}/scrape`, {
                 url,
                 startDate,
@@ -30,6 +32,23 @@ function App() {
             console.error(err);
         }
         setLoading(false);
+    };
+
+    const handleHealthCheck = async () => {
+        try {
+            const response = await axios.get(`${BACKEND_URL}/health`);
+            setHealthStatus({
+                ...response.data,
+                timestamp: new Date().toISOString()
+            });
+        } catch (err) {
+            console.error('Health check failed:', err);
+            setHealthStatus({
+                status: 'error',
+                error: 'Backend server is not responding',
+                timestamp: new Date().toISOString()
+            });
+        }
     };
 
     const handleDownload = () => {
@@ -47,11 +66,22 @@ function App() {
         <div className="App">
             <header className="App-header">
                 <h1>GeM Bid Scraper</h1>
+                <div className="health-section">
+                    <button onClick={handleHealthCheck} className="health-btn">
+                        Check Backend Status
+                    </button>
+                    {healthStatus && (
+                        <span className={`health-status ${healthStatus.status === 'healthy' ? 'healthy' : 'error'}`}>
+                            {healthStatus.status === 'healthy' ? '✅ Backend is healthy' : '❌ Backend error'}
+                            {healthStatus.timestamp && ` (${new Date(healthStatus.timestamp).toLocaleString()})`}
+                        </span>
+                    )}
+                </div>
             </header>
             <main>
-                <div className="controls">
+                <div className="container">
                     <div className="input-group">
-                        <label htmlFor="url">Target URL</label>
+                        <label htmlFor="url">GeM Advanced Search URL</label>
                         <input
                             type="text"
                             id="url"
