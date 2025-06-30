@@ -1,12 +1,11 @@
-# GeM Bid Scraper
+# GeM Bid Scraper - Full Stack Application
 
-This project scrapes bid information from the Government e-Marketplace (GeM) of India.
+This project is a full-stack web application for scraping bid information from the GeM (Government e-Marketplace) website. It consists of a Python backend that performs the scraping and a React frontend that provides a user-friendly interface.
 
 ## Project Structure
 
-- `main.py`: The main script to run the scraper.
-- `scrapers/`: Contains the core scraping logic.
-  - `gem_scraper.py`: Scraper for the GeM bid website.
+- `/backend`: Contains the Python Flask API, the Selenium scraper logic, and all related Python files.
+- `/frontend`: Contains the React user interface.
 - `utils/`: Contains utility functions.
   - `driver_setup.py`: Handles Selenium WebDriver setup.
 - `data/`: Directory to store the scraped data (e.g., CSV files).

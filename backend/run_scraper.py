@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta
 from scrapers.gem_scraper import GemBidScraper
 from utils.driver_setup import get_webdriver
 
@@ -17,8 +18,12 @@ def main():
         scraper.load_page()
         scraper.apply_filters_and_search(state="ANDHRA PRADESH")
         
-        # Scrape the first 2 pages of results
-        bids_df = scraper.scrape_bids(num_pages=2)
+        # Define the date limit for scraping (e.g., last 30 days)
+        stop_date = datetime.now() - timedelta(days=2)
+        print(f"Will scrape all bids with a start date after {stop_date.strftime('%Y-%m-%d')}.")
+
+        # Scrape all bids until a bid older than the stop_date is found
+        bids_df = scraper.scrape_bids(stop_date=stop_date)
         
         if not bids_df.empty:
             output_path = "data/gem_bids.csv"

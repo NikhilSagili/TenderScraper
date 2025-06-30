@@ -1,6 +1,7 @@
 import time
 import pandas as pd
 import re
+from datetime import datetime
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
@@ -52,26 +53,52 @@ class GemBidScraper:
             print(f"Saved a screenshot to {screenshot_path}")
             raise
 
-    def scrape_bids(self, num_pages=1):
-        """Scrapes bid information from the search results with robust error handling."""
+    def scrape_bids(self, stop_date=None):
+        """Scrapes bid information from all pages, collecting only bids newer than stop_date."""
         all_bids = []
-        for page in range(num_pages):
-            print(f"Scraping page {page + 1}...")
+        page_num = 1
+
+        while True:  # Loop indefinitely until the last page is reached
+            print(f"Scraping page {page_num}...")
             time.sleep(3)
-            bid_blocks = self.driver.find_elements(By.CSS_SELECTOR, ".card")
-            print(f"Found {len(bid_blocks)} bid blocks on this page.")
+
+            try:
+                WebDriverWait(self.driver, 20).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, ".card"))
+                )
+                bid_blocks = self.driver.find_elements(By.CSS_SELECTOR, ".card")
+                print(f"Found {len(bid_blocks)} bid blocks on this page.")
+            except Exception as e:
+                print(f"No bid blocks found on page {page_num}. Stopping. Error: {e}")
+                break
+
+            if not bid_blocks:
+                print("No more bid blocks found. Assuming end of results.")
+                break
 
             for bid in bid_blocks:
+                try:
+                    start_date_str = bid.find_element(By.CLASS_NAME, "start_date").text
+                    if stop_date:
+                        bid_start_date = datetime.strptime(start_date_str, '%d-%m-%Y %I:%M %p')
+                        if bid_start_date < stop_date:
+                            print(f"Skipping bid with start date {start_date_str} (older than stop date).")
+                            continue  # Skip to the next bid
+                except Exception as e:
+                    print(f"Could not parse start date. Skipping bid. Date string: '{start_date_str}'. Error: {e}")
+                    continue
+
+                # If we get here, the bid is recent enough. Scrape all details.
                 try:
                     bid_no = bid.find_element(By.CSS_SELECTOR, "a.bid_no_hover").text
                 except Exception:
                     bid_no = "Not Found"
-                
+
                 try:
                     items = bid.find_element(By.XPATH, ".//strong[contains(text(), 'Items:')]/following-sibling::a").text.strip()
                 except Exception:
                     items = "Not Found"
-                
+
                 try:
                     quantity_text = bid.find_element(By.XPATH, ".//strong[contains(text(), 'Quantity:')]/..").text
                     quantity = quantity_text.split(':')[-1].strip()
@@ -84,11 +111,6 @@ class GemBidScraper:
                     department = "Not Found"
 
                 try:
-                    start_date = bid.find_element(By.CLASS_NAME, "start_date").text
-                except Exception:
-                    start_date = "Not Found"
-                
-                try:
                     end_date = bid.find_element(By.CLASS_NAME, "end_date").text
                 except Exception:
                     end_date = "Not Found"
@@ -98,31 +120,25 @@ class GemBidScraper:
                     "items": items,
                     "quantity": quantity,
                     "department": department,
-                    "start_date": start_date,
+                    "start_date": start_date_str,
                     "end_date": end_date,
                 }
                 all_bids.append(bid_data)
                 print(f"Successfully scraped bid: {bid_no}")
 
-            if page < num_pages - 1:
-                try:
-                    print("Trying to go to the next page...")
-                    pagination = self.driver.find_element(By.CSS_SELECTOR, "ul.pagination")
-                    next_page_button = pagination.find_element(By.LINK_TEXT, "›")
-                    
-                    if "disabled" in next_page_button.find_element(By.XPATH, "./..").get_attribute("class"):
-                        print("Next page button is disabled. Reached the last page.")
-                        break
+            # Pagination
+            try:
+                print("Trying to go to the next page...")
+                next_page_button = self.driver.find_element(By.CSS_SELECTOR, "#light-pagination a.next")
+                self.driver.execute_script("arguments[0].click();", next_page_button)
+                print("Navigated to the next page.")
+                page_num += 1
+            except Exception:
+                print("Could not find the 'Next' page button. Reached the last page.")
+                break  # Exit the while loop
 
-                    self.driver.execute_script("arguments[0].click();", next_page_button)
-                    print("Navigated to the next page.")
-                    time.sleep(3) # Wait for new page to load
-                except Exception as e:
-                    print(f"Could not find or click the next page button. Stopping. Error: {e}")
-                    break
-        
         if not all_bids:
-            print("No bids were scraped.")
+            print("No bids matching the criteria were scraped.")
             return pd.DataFrame()
 
         bids_df = pd.DataFrame(all_bids)
