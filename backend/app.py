@@ -6,7 +6,50 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 app = Flask(__name__)
-CORS(app)  # Allow requests from the React frontend
+
+@app.route('/', methods=['GET'])
+def index():
+    """Root endpoint that provides basic API information."""
+    return jsonify({
+        "name": "GeM Bid Scraper API",
+        "version": "1.0.0",
+        "status": "operational",
+        "endpoints": {
+            "health_check": "/health (GET)",
+            "scrape": "/scrape (POST)"
+        },
+        "documentation": "https://github.com/NikhilSagili/TenderScraper"
+    }), 200
+
+# Allow requests from GitHub Pages and local development
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://nikhilsagili.github.io",  # GitHub Pages
+            "http://localhost:3000"            # Local development
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint for Render to monitor the service."""
+    try:
+        # Test database connection if you have one
+        # Test external service connections if any
+        return jsonify({
+            "status": "healthy",
+            "timestamp": datetime.utcnow().isoformat(),
+            "service": "gem-bid-scraper"
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }), 500
 
 @app.route('/scrape', methods=['POST'])
 def scrape():

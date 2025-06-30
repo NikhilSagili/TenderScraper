@@ -17,7 +17,9 @@ function App() {
         setBids([]);
 
         try {
-            const response = await axios.post('http://127.0.0.1:5001/scrape', {
+            // Use the Render backend URL - replace 'your-render-app-url' with your actual Render URL
+            const BACKEND_URL = 'https://your-render-app.onrender.com';
+            const response = await axios.post(`${BACKEND_URL}/scrape`, {
                 url,
                 startDate,
                 endDate,

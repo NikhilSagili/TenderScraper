@@ -1,28 +1,36 @@
-# Use an official Python runtime as a parent image
+# Use a smaller base image
 FROM python:3.9-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies required for Selenium and Chrome
-RUN apt-get update && apt-get install -y \
+# Install system dependencies in a single RUN command to reduce layers
+RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
-    unzip \
-    --no-install-recommends
+    gnupg2 \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
 
-# Download and install Google Chrome
-RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-RUN apt-get install -y ./google-chrome-stable_current_amd64.deb
-
-# Copy the requirements file into the container at /app
+# Copy only requirements first to leverage Docker cache
 COPY requirements.txt .
 
-# Install any needed packages specified in requirements.txt
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application's code into the container
+# Copy the rest of the application
 COPY . .
 
-# Tell Gunicorn where to find the app and run it
-# The server will be available on port 10000
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:10000/health || exit 1
+
+# Run Gunicorn with more workers and timeout settings
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "120", "--workers", "2", "--threads", "4", "--worker-class", "gthread", "app:app"]
