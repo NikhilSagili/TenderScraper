@@ -1,12 +1,100 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from scrapers.gem_scraper import GemBidScraper
-from utils.driver_setup import get_webdriver
+import os
+import time
+import signal
+import logging
+from functools import wraps
 from datetime import datetime, timedelta
+
+from flask import Flask, request, jsonify, g
+from flask_cors import CORS
 import pandas as pd
 
-app = Flask(__name__)
+from scrapers.gem_scraper import GemBidScraper
+from utils.driver_setup import get_webdriver, safe_quit
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('app.log')
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Global state for request timeouts
+class TimeoutError(Exception):
+    pass
+
+def timeout_handler(signum, frame):
+    raise TimeoutError("Request timed out")
+
+app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max payload
+
+# Configure CORS with additional headers for long-running requests
+CORS(app, resources={
+    r"/*": {
+        "origins": ["https://nikhilsagili.github.io", "http://localhost:3000"],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "X-Requested-With"],
+        "expose_headers": ["X-Progress", "X-Status"],
+        "supports_credentials": True,
+        "max_age": 3600
+    }
+})
+
+# Request hooks
+@app.before_request
+def before_request():
+    """Set up request context and handle timeouts."""
+    g.start_time = time.time()
+    g.request_id = os.urandom(8).hex()
+    logger.info(f"Request started: {request.method} {request.path} [{g.request_id}]")
+    
+    # Set up timeout handler (30 minutes)
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(1800)  # 30 minutes timeout
+
+@app.after_request
+def after_request(response):
+    """Clean up after request and log completion."""
+    # Disable the alarm
+    signal.alarm(0)
+    
+    # Calculate request duration
+    duration = time.time() - g.start_time
+    
+    # Add response headers for CORS and timeouts
+    response.headers['X-Request-Duration'] = f"{duration:.2f}s"
+    response.headers['X-Request-ID'] = getattr(g, 'request_id', '')
+    response.headers['Keep-Alive'] = 'timeout=300, max=1000'
+    
+    logger.info(
+        f"Request completed: {request.method} {request.path} "
+        f"[{g.request_id}] - {response.status_code} ({duration:.2f}s)"
+    )
+    return response
+
+# Error handlers
+@app.errorhandler(TimeoutError)
+def handle_timeout_error(e):
+    logger.error(f"Request timed out: {str(e)}")
+    return jsonify({
+        "error": "Request timed out",
+        "message": "The request took too long to process"
+    }), 504
+
+@app.errorhandler(500)
+def handle_server_error(e):
+    logger.error(f"Server error: {str(e)}", exc_info=True)
+    return jsonify({
+        "error": "Internal server error",
+        "message": "An unexpected error occurred"
+    }), 500
+
+# API endpoints
 @app.route('/', methods=['GET'])
 def index():
     """Root endpoint that provides basic API information."""
@@ -14,6 +102,7 @@ def index():
         "name": "GeM Bid Scraper API",
         "version": "1.0.0",
         "status": "operational",
+        "timeout": "1800s",
         "endpoints": {
             "health_check": "/health (GET)",
             "scrape": "/scrape (POST)"
@@ -60,7 +149,11 @@ def validate_date(date_str):
 
 @app.route('/scrape', methods=['POST'])
 def scrape():
-    """API endpoint to trigger the scraper."""
+    """
+    API endpoint to trigger the scraper with progress tracking and timeout handling.
+    This endpoint can take a long time to complete (up to 30 minutes).
+    """
+    # Initialize request data and validate input
     try:
         data = request.get_json()
         if not data:
@@ -83,71 +176,100 @@ def scrape():
         if start_date > end_date:
             return jsonify({"error": "Start date cannot be after end date"}), 400
             
-        # Add rate limiting check if needed
-        # if is_rate_limited():
-        #     return jsonify({"error": "Too many requests. Please try again later."}), 429
+        # Convert string date to datetime object
+        try:
+            stop_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD"}), 400
             
+        # Log the start of scraping
+        logger.info(f"Starting scrape for {target_url} from {start_date_str} to {end_date_str}")
+        
     except Exception as e:
-        app.logger.error(f"Error in input validation: {str(e)}")
-        return jsonify({"error": f"Invalid request: {str(e)}"}), 400 # Note: end_date is not used in the current scraper logic, but we get it for future use.
+        logger.error(f"Error in input validation: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Invalid request: {str(e)}"}), 400
 
-    if not target_url or not start_date_str:
-        return jsonify({"error": "URL and start date are required"}), 400
-
-    try:
-        # Convert string date from frontend to datetime object
-        stop_date = datetime.strptime(start_date_str, '%Y-%m-%d')
-    except ValueError:
-        return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD"}), 400
-
+    # Initialize WebDriver and scraper
     driver = None
     try:
-        print("Initializing webdriver...")
+        # Set up WebDriver with appropriate timeouts
+        logger.info("Initializing WebDriver...")
         driver = get_webdriver()
-        print("Webdriver initialized successfully")
         
-        print("Initializing scraper...")
+        # Configure timeouts for the WebDriver
+        driver.set_page_load_timeout(300)  # 5 minutes for page load
+        driver.set_script_timeout(300)     # 5 minutes for script execution
+        
+        logger.info("WebDriver initialized successfully")
+        
+        # Initialize scraper
+        logger.info("Initializing scraper...")
         scraper = GemBidScraper(driver)
-        print("Scraper initialized successfully")
         
         try:
-            print("Loading page...")
+            # Execute scraping steps with progress tracking
+            logger.info("Loading target page...")
             scraper.load_page()
-            print("Page loaded successfully")
             
-            print("Applying filters and searching...")
-            scraper.apply_filters_and_search(state="ANDHRA PRADESH")
-            print("Filters applied successfully")
+            logger.info("Applying search filters...")
+            if not scraper.apply_filters_and_search(state="ANDHRA PRADESH"):
+                logger.warning("No results found for the selected filters")
+                return jsonify({
+                    "message": "No results found for the selected criteria",
+                    "data": []
+                }), 200
             
-            print(f"Starting to scrape bids until {stop_date}...")
-            bids_df = scraper.scrape_bids(stop_date=stop_date)
-            print(f"Scraping completed. Found {len(bids_df)} bids")
+            logger.info(f"Starting to scrape bids until {stop_date}...")
+            
+            # Scrape with progress tracking
+            start_time = time.time()
+            bids_df = scraper.scrape_bids(stop_date=stop_date, max_pages=50)
+            
+            # Log completion
+            duration = time.time() - start_time
+            logger.info(f"Scraping completed in {duration:.1f} seconds. Found {len(bids_df)} bids")
             
             if bids_df.empty:
-                print("No bids found for the given criteria")
-                return jsonify({"message": "No bids found for the given criteria", "data": []}), 200
+                return jsonify({
+                    "message": "No bids found for the given criteria",
+                    "data": []
+                }), 200
 
-            # Convert DataFrame to list of dicts for JSON serialization
-            print("Converting results to JSON...")
+            # Convert results to JSON
             result = bids_df.to_dict(orient="records")
-            return jsonify({"message": "Success", "data": result}), 200
+            return jsonify({
+                "message": "Success", 
+                "data": result,
+                "stats": {
+                    "total_bids": len(result),
+                    "duration_seconds": round(duration, 2),
+                    "pages_scraped": min(50, len(result) // 10 + 1)  # Estimate pages
+                }
+            }), 200
             
         except Exception as scrape_error:
-            app.logger.error(f"Error during scraping: {str(scrape_error)}", exc_info=True)
+            logger.error(f"Error during scraping: {str(scrape_error)}", exc_info=True)
             return jsonify({
                 "error": "Scraping failed",
                 "details": str(scrape_error)
             }), 500
             
     except Exception as e:
-        app.logger.error(f"Error initializing scraper: {str(e)}", exc_info=True)
+        logger.error(f"Error initializing scraper: {str(e)}", exc_info=True)
         return jsonify({
             "error": "Failed to initialize scraper",
             "details": str(e)
         }), 500
+        
     finally:
+        # Ensure WebDriver is properly closed
         if driver:
-            driver.quit()
+            try:
+                logger.info("Cleaning up WebDriver...")
+                driver.quit()
+                logger.info("WebDriver cleanup complete")
+            except Exception as e:
+                logger.error(f"Error during WebDriver cleanup: {str(e)}", exc_info=True)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
