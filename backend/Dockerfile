@@ -33,22 +33,23 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:10000/health || exit 1
 
 # Run Gunicorn with extended timeouts for long-running tasks
-CMD ["gunicorn", \
-     "--bind", "0.0.0.0:10000", \
-     "--timeout", "1200", \
-     "--workers", "1", \
-     "--threads", "2", \
-     "--worker-class", "gthread", \
-     "--keep-alive", "10", \
-     "--max-requests", "1000", \
-     "--max-requests-jitter", "50", \
-     "--log-level", "info", \
-     "--error-logfile", "-", \
-     "--access-logfile", "-", \
-     "--worker-tmp-dir", "/dev/shm", \
-     "--preload", \
-     "--capture-output", \
-     "--enable-stdio-inheritance", \
-     "--log-file=-", \
-     "--access-logformat", '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(L)ss', \
-     "app:app"]
+# Using shell form for better compatibility
+CMD gunicorn \
+    --bind 0.0.0.0:10000 \
+    --timeout 1200 \
+    --workers 1 \
+    --threads 2 \
+    --worker-class gthread \
+    --keep-alive 10 \
+    --max-requests 1000 \
+    --max-requests-jitter 50 \
+    --log-level info \
+    --error-logfile - \
+    --access-logfile - \
+    --worker-tmp-dir /dev/shm \
+    --preload \
+    --capture-output \
+    --enable-stdio-inheritance \
+    --log-file=- \
+    --access-logformat '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(L)ss' \
+    app:app
