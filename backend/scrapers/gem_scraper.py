@@ -52,6 +52,7 @@ class GemBidScraper:
         """Loads the advanced search page with retry logic."""
         try:
             logger.info(f"Loading page: {self.url}")
+            time.sleep(random.uniform(2, 5)) # Add random delay
             self.driver.get(self.url)
             
             # Wait for either the nav-tabs or a timeout
