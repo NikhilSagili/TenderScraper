@@ -45,7 +45,8 @@ def before_request():
     """Set up request context."""
     g.start_time = time.time()
     g.request_id = os.urandom(8).hex()
-    logger.info(f"Request started: {request.method} {request.path} [{g.request_id}]")
+    if request.path != '/health':
+        logger.info(f"Request started: {request.method} {request.path} [{g.request_id}]")
 
 @app.after_request
 def after_request(response):
@@ -58,10 +59,11 @@ def after_request(response):
     response.headers['X-Request-ID'] = getattr(g, 'request_id', '')
     response.headers['Keep-Alive'] = 'timeout=300, max=1000'
     
-    logger.info(
-        f"Request completed: {request.method} {request.path} "
-        f"[{g.request_id}] - {response.status_code} ({duration:.2f}s)"
-    )
+    if request.path != '/health':
+        logger.info(
+            f"Request completed: {request.method} {request.path} "
+            f"[{g.request_id}] - {response.status_code} ({duration:.2f}s)"
+        )
     return response
 
 # Error handlers

@@ -106,6 +106,8 @@ main {
     flex-direction: column;
 }
 
+
+
 .form-row {
     display: flex;
     flex-direction: row;
@@ -125,11 +127,13 @@ main {
     font-size: 0.9rem;
 }
 
-.input-group input {
+.input-group input,
+.input-group select {
     padding: 10px;
     border-radius: 4px;
     border: 1px solid #ccc;
     font-size: 1rem;
+    background-color: white;
 }
 
 button {

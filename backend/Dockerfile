@@ -28,17 +28,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-# Health check
+# Health check - using shell to expand the PORT variable
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:10000/health || exit 1
+  CMD [ "sh", "-c", "curl -f http://localhost:${PORT}/health || exit 1" ]
 
 # Run Gunicorn with extended timeouts for long-running tasks
-# Using shell form for better compatibility
-CMD gunicorn \
-    --bind 0.0.0.0:10000 \
-    --timeout 1200 \
+# Using shell form for better compatibility. Render injects the PORT env var.
+CMD exec gunicorn \
+    --bind 0.0.0.0:$PORT \
     --workers 1 \
-    --threads 2 \
+    --threads 8 \
+    --timeout 1860 \
     --worker-class gthread \
     --keep-alive 10 \
     --max-requests 1000 \
@@ -48,8 +48,4 @@ CMD gunicorn \
     --access-logfile - \
     --worker-tmp-dir /dev/shm \
     --preload \
-    --capture-output \
-    --enable-stdio-inheritance \
-    --log-file=- \
-    --access-logformat '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(L)ss' \
     app:app

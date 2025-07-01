@@ -49,6 +49,12 @@ def get_webdriver(max_retries=3, retry_delay=5):
             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
             chrome_options.add_experimental_option('useAutomationExtension', False)
             
+            # Add more options to evade detection
+            chrome_options.add_argument('--disable-infobars')
+            chrome_options.add_argument('--start-maximized')
+            chrome_options.add_argument('--ignore-certificate-errors')
+            chrome_options.add_argument('referer=https://www.google.com/')
+            
             # Configure timeouts
             service = ChromeService(executable_path=ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=chrome_options)
