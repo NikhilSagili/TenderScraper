@@ -11,7 +11,7 @@ import pandas as pd
 from pebble import concurrent
 
 from scrapers.gem_scraper import GemBidScraper
-from utils.driver_setup import get_webdriver, safe_quit
+
 
 # Configure logging
 logging.basicConfig(

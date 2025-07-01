@@ -4,6 +4,7 @@ import re
 import random
 import logging
 from datetime import datetime
+from utils.driver_setup import setup_driver, retry
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
@@ -43,8 +44,8 @@ def retry_on_failure(max_retries=3, delay=2, backoff=2):
     return decorator
 
 class GemBidScraper:
-    def __init__(self, driver):
-        self.driver = driver
+    def __init__(self):
+        self.driver = setup_driver()
         self.url = "https://bidplus.gem.gov.in/advance-search"
 
     @retry_on_failure(max_retries=3, delay=2)
