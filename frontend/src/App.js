@@ -7,6 +7,7 @@ function App() {
     const [url, setUrl] = useState('https://bidplus.gem.gov.in/advance-search');
     const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 2)).toISOString().split('T')[0]);
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+    const [state, setState] = useState('ANDHRA PRADESH'); // Default state
     const [bids, setBids] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -25,6 +26,7 @@ function App() {
                 url,
                 startDate,
                 endDate,
+                state, // Add selected state to the request
             }, {
                 timeout: 900000, // 5 minutes timeout
                 headers: {
@@ -120,23 +122,32 @@ function App() {
                             onChange={(e) => setUrl(e.target.value)}
                         />
                     </div>
-                    <div className="input-group">
-                        <label htmlFor="startDate">Start Date</label>
-                        <input
-                            type="date"
-                            id="startDate"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                        />
-                    </div>
-                    <div className="input-group">
-                        <label htmlFor="endDate">End Date</label>
-                        <input
-                            type="date"
-                            id="endDate"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                        />
+                    <div className="form-row">
+                        <div className="input-group">
+                            <label htmlFor="state">State</label>
+                            <select id="state" value={state} onChange={(e) => setState(e.target.value)}>
+                                <option value="ANDHRA PRADESH">Andhra Pradesh</option>
+                                <option value="TELANGANA">Telangana</option>
+                            </select>
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="startDate">Start Date</label>
+                            <input
+                                type="date"
+                                id="startDate"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                            />
+                        </div>
+                        <div className="input-group">
+                            <label htmlFor="endDate">End Date</label>
+                            <input
+                                type="date"
+                                id="endDate"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                            />
+                        </div>
                     </div>
                     <div className="button-group">
                         <button onClick={handleScrape} disabled={loading}>

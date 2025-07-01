@@ -1,13 +1,14 @@
 import os
 import time
-import signal
 import logging
 from functools import wraps
 from datetime import datetime, timedelta
+from concurrent.futures import TimeoutError
 
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 import pandas as pd
+from pebble import concurrent
 
 from scrapers.gem_scraper import GemBidScraper
 from utils.driver_setup import get_webdriver, safe_quit
@@ -22,13 +23,6 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
-
-# Global state for request timeouts
-class TimeoutError(Exception):
-    pass
-
-def timeout_handler(signum, frame):
-    raise TimeoutError("Request timed out")
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max payload
@@ -71,13 +65,6 @@ def after_request(response):
     return response
 
 # Error handlers
-@app.errorhandler(TimeoutError)
-def handle_timeout_error(e):
-    logger.error(f"Request timed out: {str(e)}")
-    return jsonify({
-        "error": "Request timed out",
-        "message": "The request took too long to process"
-    }), 504
 
 @app.errorhandler(500)
 def handle_server_error(e):
@@ -155,6 +142,7 @@ def scrape():
         target_url = data.get('url')
         start_date_str = data.get('startDate')
         end_date_str = data.get('endDate')
+        state = data.get('state', 'ANDHRA PRADESH') # Default to AP if not provided
 
         # Input validation
         if not target_url:
@@ -184,7 +172,7 @@ def scrape():
 
     try:
         # Use pebble to run the scraping task with a timeout
-        future = run_scraping_task_with_timeout(stop_date=stop_date)
+        future = run_scraping_task_with_timeout(stop_date=stop_date, state=state)
         result = future.result()  # Blocks until complete or timeout
         return jsonify(result)
     
@@ -197,7 +185,7 @@ def scrape():
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
 @concurrent.process(timeout=1800)  # 30-minute timeout
-def run_scraping_task_with_timeout(stop_date):
+def run_scraping_task_with_timeout(stop_date, state):
     """Runs the entire scraping process in a separate process with a timeout."""
     driver = None
     try:
@@ -211,8 +199,8 @@ def run_scraping_task_with_timeout(stop_date):
         logger.info("Worker process: Loading page...")
         scraper.load_page()
         
-        logger.info("Worker process: Applying filters...")
-        if not scraper.apply_filters_and_search(state="ANDHRA PRADESH"):
+        logger.info(f"Worker process: Applying filters for state: {state}...")
+        if not scraper.apply_filters_and_search(state=state):
             return {"message": "No results found for the selected criteria", "data": []}
         
         logger.info(f"Worker process: Starting scrape until {stop_date}...")

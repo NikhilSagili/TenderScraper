@@ -101,8 +101,22 @@ main {
 }
 
 .input-group {
+    margin-bottom: 15px;
     display: flex;
     flex-direction: column;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-row .input-group {
+    margin-bottom: 0;
+    flex: 1;
 }
 
 .input-group label {
