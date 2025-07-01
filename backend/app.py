@@ -203,17 +203,34 @@ def run_scraping_task_with_timeout(stop_date, state):
         
         logger.info(f"Worker process: Applying filters for state: {state}...")
         if not scraper.apply_filters_and_search(state=state):
+            return {"message": "No results found for the selected criteria", "data": []}
+        
+        logger.info(f"Worker process: Starting scrape until {stop_date}...")
+        start_time = time.time()
+        bids_df = scraper.scrape_bids(stop_date=stop_date, max_pages=50)
+        duration = time.time() - start_time
         
         if bids_df.empty:
-            return {"status": "success", "data": [], "message": "No bids found for the selected criteria."}
+            return {"message": "No bids found for the given criteria", "data": []}
         
-        return {"status": "success", "data": bids_df.to_dict(orient='records')}
+        logger.info(f"Worker process: Scraping completed in {duration:.1f}s. Found {len(bids_df)} bids.")
+        result_data = bids_df.to_dict(orient="records")
+        return {
+            "message": "Success",
+            "data": result_data,
+            "stats": {
+                "total_bids": len(result_data),
+                "duration_seconds": round(duration, 2),
+            }
+        }
     except Exception as e:
-        logger.error(f"Error within scraping worker process: {e}", exc_info=True)
+        logger.error(f"Error within scraping worker process: {str(e)}", exc_info=True)
+        # Re-raise to ensure the main thread catches it as a task failure
         raise
     finally:
-        if scraper and scraper.driver:
-            scraper.close_driver()
+        if driver:
+            logger.info("Worker process: Cleaning up WebDriver...")
+            driver.quit()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
