@@ -48,21 +48,14 @@ CORS(app, resources={
 # Request hooks
 @app.before_request
 def before_request():
-    """Set up request context and handle timeouts."""
+    """Set up request context."""
     g.start_time = time.time()
     g.request_id = os.urandom(8).hex()
     logger.info(f"Request started: {request.method} {request.path} [{g.request_id}]")
-    
-    # Set up timeout handler (30 minutes)
-    signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(1800)  # 30 minutes timeout
 
 @app.after_request
 def after_request(response):
     """Clean up after request and log completion."""
-    # Disable the alarm
-    signal.alarm(0)
-    
     # Calculate request duration
     duration = time.time() - g.start_time
     
@@ -189,87 +182,65 @@ def scrape():
         logger.error(f"Error in input validation: {str(e)}", exc_info=True)
         return jsonify({"error": f"Invalid request: {str(e)}"}), 400
 
-    # Initialize WebDriver and scraper
+    try:
+        # Use pebble to run the scraping task with a timeout
+        future = run_scraping_task_with_timeout(stop_date=stop_date)
+        result = future.result()  # Blocks until complete or timeout
+        return jsonify(result)
+    
+    except TimeoutError:
+        logger.error("Scraping task timed out after 30 minutes.")
+        return jsonify({"error": "Request timed out", "details": "The scraping process took too long to complete."}), 504
+    
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {str(e)}", exc_info=True)
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+
+@concurrent.process(timeout=1800)  # 30-minute timeout
+def run_scraping_task_with_timeout(stop_date):
+    """Runs the entire scraping process in a separate process with a timeout."""
     driver = None
     try:
-        # Set up WebDriver with appropriate timeouts
-        logger.info("Initializing WebDriver...")
+        logger.info("Worker process: Initializing WebDriver...")
         driver = get_webdriver()
+        driver.set_page_load_timeout(300)
+        driver.set_script_timeout(300)
         
-        # Configure timeouts for the WebDriver
-        driver.set_page_load_timeout(300)  # 5 minutes for page load
-        driver.set_script_timeout(300)     # 5 minutes for script execution
-        
-        logger.info("WebDriver initialized successfully")
-        
-        # Initialize scraper
-        logger.info("Initializing scraper...")
         scraper = GemBidScraper(driver)
         
-        try:
-            # Execute scraping steps with progress tracking
-            logger.info("Loading target page...")
-            scraper.load_page()
-            
-            logger.info("Applying search filters...")
-            if not scraper.apply_filters_and_search(state="ANDHRA PRADESH"):
-                logger.warning("No results found for the selected filters")
-                return jsonify({
-                    "message": "No results found for the selected criteria",
-                    "data": []
-                }), 200
-            
-            logger.info(f"Starting to scrape bids until {stop_date}...")
-            
-            # Scrape with progress tracking
-            start_time = time.time()
-            bids_df = scraper.scrape_bids(stop_date=stop_date, max_pages=50)
-            
-            # Log completion
-            duration = time.time() - start_time
-            logger.info(f"Scraping completed in {duration:.1f} seconds. Found {len(bids_df)} bids")
-            
-            if bids_df.empty:
-                return jsonify({
-                    "message": "No bids found for the given criteria",
-                    "data": []
-                }), 200
-
-            # Convert results to JSON
-            result = bids_df.to_dict(orient="records")
-            return jsonify({
-                "message": "Success", 
-                "data": result,
-                "stats": {
-                    "total_bids": len(result),
-                    "duration_seconds": round(duration, 2),
-                    "pages_scraped": min(50, len(result) // 10 + 1)  # Estimate pages
-                }
-            }), 200
-            
-        except Exception as scrape_error:
-            logger.error(f"Error during scraping: {str(scrape_error)}", exc_info=True)
-            return jsonify({
-                "error": "Scraping failed",
-                "details": str(scrape_error)
-            }), 500
-            
-    except Exception as e:
-        logger.error(f"Error initializing scraper: {str(e)}", exc_info=True)
-        return jsonify({
-            "error": "Failed to initialize scraper",
-            "details": str(e)
-        }), 500
+        logger.info("Worker process: Loading page...")
+        scraper.load_page()
         
+        logger.info("Worker process: Applying filters...")
+        if not scraper.apply_filters_and_search(state="ANDHRA PRADESH"):
+            return {"message": "No results found for the selected criteria", "data": []}
+        
+        logger.info(f"Worker process: Starting scrape until {stop_date}...")
+        start_time = time.time()
+        bids_df = scraper.scrape_bids(stop_date=stop_date, max_pages=50)
+        duration = time.time() - start_time
+        
+        if bids_df.empty:
+            return {"message": "No bids found for the given criteria", "data": []}
+        
+        logger.info(f"Worker process: Scraping completed in {duration:.1f}s. Found {len(bids_df)} bids.")
+        result_data = bids_df.to_dict(orient="records")
+        return {
+            "message": "Success",
+            "data": result_data,
+            "stats": {
+                "total_bids": len(result_data),
+                "duration_seconds": round(duration, 2),
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error within scraping worker process: {str(e)}", exc_info=True)
+        # Re-raise to ensure the main thread catches it as a task failure
+        raise
     finally:
-        # Ensure WebDriver is properly closed
         if driver:
-            try:
-                logger.info("Cleaning up WebDriver...")
-                driver.quit()
-                logger.info("WebDriver cleanup complete")
-            except Exception as e:
-                logger.error(f"Error during WebDriver cleanup: {str(e)}", exc_info=True)
+            logger.info("Worker process: Cleaning up WebDriver...")
+            driver.quit()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
