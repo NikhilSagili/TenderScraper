@@ -5,6 +5,7 @@ from datetime import datetime
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 
 class GemBidScraper:
     def __init__(self, driver):
@@ -47,13 +48,26 @@ class GemBidScraper:
                 print(f"Could not find or click search button. Falling back to JS execution. Error: {e}")
                 self.driver.execute_script("searchBid('con');")
 
-            time.sleep(3)  # Allow time for AJAX request to be sent and processed
-
-            print("Waiting for bid results to load...")
+            print("Waiting for search results or an error message...")
+            
+            # Wait for either the bid cards to load OR an error message to appear
             WebDriverWait(self.driver, 40).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, ".card"))
+                EC.any_of(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, ".card")),
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "#bidCard .alert.alert-danger"))
+                )
             )
-            print("Bid results loaded.")
+
+            # After waiting, check if the error message is present
+            try:
+                error_element = self.driver.find_element(By.CSS_SELECTOR, "#bidCard .alert.alert-danger")
+                if "Something went wrong" in error_element.text:
+                    print("Detected server-side error message on GeM portal.")
+                    raise Exception("The GeM portal returned an error: 'Something went wrong, please try again after some time'. This is an issue with the website, not the scraper.")
+            except NoSuchElementException:
+                # If the error message isn't there, it means the bid cards loaded successfully.
+                print("Bid results loaded successfully.")
+                pass # Continue to scraping logic
         except Exception as e:
             screenshot_path = 'debug_screenshot_filters.png'
             self.driver.save_screenshot(screenshot_path)
