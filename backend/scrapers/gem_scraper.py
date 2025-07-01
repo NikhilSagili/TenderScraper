@@ -156,10 +156,16 @@ class GemBidScraper:
                 except Exception:
                     continue
 
+                bid_no = "Not Found"
+                bid_url = "#"
                 try:
-                    bid_no = bid.find_element(By.CSS_SELECTOR, "a.bid_no_hover").text
+                    bid_link_element = bid.find_element(By.CSS_SELECTOR, "a.bid_no_hover")
+                    bid_no = bid_link_element.text
+                    href = bid_link_element.get_attribute('href')
+                    if href:
+                        bid_url = f"https://bidplus.gem.gov.in{href}" if href.startswith('/') else href
                 except Exception:
-                    bid_no = "Not Found"
+                    pass # Keep default values
 
                 try:
                     items = bid.find_element(By.XPATH, ".//strong[contains(text(), 'Items:')]/following-sibling::a").text.strip()
@@ -184,6 +190,7 @@ class GemBidScraper:
 
                 bid_data = {
                     "bid_number": bid_no,
+                    "bid_url": bid_url,
                     "items": items,
                     "quantity": quantity,
                     "department": department,

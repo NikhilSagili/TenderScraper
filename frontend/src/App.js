@@ -168,30 +168,38 @@ function App() {
                 {error && <p className="error">{error}</p>}
 
                 {bids.length > 0 && (
-                    <div className="results">
-                        <h2>Scraped Bids</h2>
-                        <button onClick={handleDownload} className="download-btn">
-                            Download CSV
-                        </button>
-                        <table>
-                            <thead>
-                                <tr>
-                                    {Object.keys(bids[0]).map((key) => (
-                                        <th key={key}>{key}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {bids.map((bid, index) => (
-                                    <tr key={index}>
-                                        {Object.values(bid).map((value, i) => (
-                                            <td key={i}>{value}</td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                     <div className="results">
+                         <h2>Scraped Bids</h2>
+                         <button onClick={handleDownload} className="download-btn">
+                             Download CSV
+                         </button>
+                         <div className="results-container">
+                             <table className="results-table">
+                                 <thead>
+                                     <tr>
+                                         <th>Bid No</th>
+                                         <th>Items</th>
+                                         <th>Quantity</th>
+                                         <th>Department</th>
+                                         <th>Start Date</th>
+                                         <th>End Date</th>
+                                     </tr>
+                                 </thead>
+                                 <tbody>
+                                     {bids.map((bid, index) => (
+                                         <tr key={index}>
+                                             <td><a href={bid.bid_url} target="_blank" rel="noopener noreferrer">{bid.bid_number}</a></td>
+                                             <td>{bid.items}</td>
+                                             <td>{bid.quantity}</td>
+                                             <td>{bid.department}</td>
+                                             <td>{bid.start_date}</td>
+                                             <td>{bid.end_date}</td>
+                                         </tr>
+                                     ))}
+                                 </tbody>
+                             </table>
+                         </div>
+                     </div>
                 )}
             </main>
         </div>
@@ -199,4 +207,3 @@ function App() {
 }
 
 export default App;
-
