@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Papa from 'papaparse';
 import './App.css';
@@ -12,9 +12,12 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [healthStatus, setHealthStatus] = useState('');
-    
-    // Backend URL - update this to your Render URL
-    const BACKEND_URL = process.env.REACT_APP_API_URL || 'https://gem-scraper-backend.onrender.com';
+    const [backendUrl, setBackendUrl] = useState(localStorage.getItem('backendUrl') || '');
+
+    // Persist backendUrl to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('backendUrl', backendUrl);
+    }, [backendUrl]);
 
     const handleScrape = async () => {
         setLoading(true);
@@ -22,7 +25,7 @@ function App() {
         setBids([]);
 
         try {
-            const response = await axios.post(`${BACKEND_URL}/scrape`, {
+            const response = await axios.post(`${backendUrl}/scrape`, {
                 url,
                 startDate,
                 endDate,
@@ -80,7 +83,7 @@ function App() {
 
     const handleHealthCheck = async () => {
         try {
-            const response = await axios.get(`${BACKEND_URL}/health`);
+            const response = await axios.get(`${backendUrl}/health`);
             setHealthStatus({
                 ...response.data,
                 timestamp: new Date().toISOString()
@@ -113,6 +116,16 @@ function App() {
             </header>
             <main>
                 <div className="container">
+                    <div className="input-group">
+                        <label htmlFor="backendUrl">Backend URL</label>
+                        <input
+                            type="text"
+                            id="backendUrl"
+                            value={backendUrl}
+                            onChange={(e) => setBackendUrl(e.target.value)}
+                            placeholder="Paste ngrok URL from console here"
+                        />
+                    </div>
                     <div className="input-group">
                         <label htmlFor="url">GeM Advanced Search URL</label>
                         <input
@@ -150,10 +163,10 @@ function App() {
                         </div>
                     </div>
                     <div className="button-group">
-                        <button onClick={handleScrape} disabled={loading}>
+                        <button onClick={handleScrape} disabled={loading || !backendUrl}>
                             {loading ? 'Scraping...' : 'Scrape Bids'}
                         </button>
-                        <button onClick={handleHealthCheck} className="health-btn">
+                        <button onClick={handleHealthCheck} className="health-btn" disabled={!backendUrl}>
                             Check Backend Status
                         </button>
                     </div>

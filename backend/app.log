@@ -1,0 +1,207 @@
+2025-07-01 15:21:22,311 - pyngrok.ngrok - INFO - Opening tunnel named: http-5001-1a3708cd-4876-4e50-a9a8-03bfd889a413
+2025-07-01 15:21:27,859 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:27+0530 lvl=info msg="no configuration paths supplied"
+2025-07-01 15:21:27,860 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:27+0530 lvl=info msg="using configuration at default config path" path="C:\\Users\\Nikhil Reddy Sagili\\AppData\\Local/ngrok/ngrok.yml"
+2025-07-01 15:21:27,860 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:27+0530 lvl=info msg="open config file" path="C:\\Users\\Nikhil Reddy Sagili\\AppData\\Local\\ngrok\\ngrok.yml" err=nil
+2025-07-01 15:21:27,887 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:27+0530 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+2025-07-01 15:21:28,249 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg="client session established" obj=tunnels.session
+2025-07-01 15:21:28,250 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg="tunnel session started" obj=tunnels.session
+2025-07-01 15:21:28,253 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg=start pg=/api/tunnels id=824bf2fff295ca53
+2025-07-01 15:21:28,254 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg=end pg=/api/tunnels id=824bf2fff295ca53 status=200 dur=693.8µs
+2025-07-01 15:21:28,259 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg=start pg=/api/tunnels id=f801e8cddfdfbbe5
+2025-07-01 15:21:28,260 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg=end pg=/api/tunnels id=f801e8cddfdfbbe5 status=200 dur=0s
+2025-07-01 15:21:28,261 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg=start pg=/api/tunnels id=629e2bd79445474a
+2025-07-01 15:21:28,268 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg=end pg=/api/tunnels id=629e2bd79445474a status=200 dur=0s
+2025-07-01 15:21:28,269 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg=start pg=/api/tunnels id=83412ec8c12f61ef
+2025-07-01 15:21:28,349 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg="started tunnel" obj=tunnels name=http-5001-1a3708cd-4876-4e50-a9a8-03bfd889a413 addr=http://localhost:5001 url=https://11db-2405-201-c00a-b819-71e2-27e5-912d-32.ngrok-free.app
+2025-07-01 15:21:28,350 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:21:28+0530 lvl=info msg=end pg=/api/tunnels id=83412ec8c12f61ef status=201 dur=87.3021ms
+2025-07-01 15:21:28,371 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2025-07-01 15:21:28,372 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-01 15:22:32,659 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:22:32+0530 lvl=info msg="join connections" obj=join id=93a3971bfeeb l=127.0.0.1:5001 r=[2405:201:c00a:b819:71e2:27e5:912d:32]:59804
+2025-07-01 15:22:32,664 - __main__ - INFO - Request started: OPTIONS /scrape [6354b6397f3b87d7]
+2025-07-01 15:22:32,665 - __main__ - INFO - Request completed: OPTIONS /scrape [6354b6397f3b87d7] - 200 (0.00s)
+2025-07-01 15:22:32,674 - werkzeug - INFO - 127.0.0.1 - - [01/Jul/2025 15:22:32] "OPTIONS /scrape HTTP/1.1" 200 -
+2025-07-01 15:22:32,743 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:22:32+0530 lvl=info msg="join connections" obj=join id=82ec90dc5720 l=127.0.0.1:5001 r=[2405:201:c00a:b819:71e2:27e5:912d:32]:59804
+2025-07-01 15:22:32,744 - __main__ - INFO - Request started: POST /scrape [f72ccc0a7b1d6803]
+2025-07-01 15:22:32,744 - __main__ - INFO - Starting scrape for https://bidplus.gem.gov.in/advance-search from 2025-06-29 to 2025-07-01
+2025-07-01 15:22:34,135 - __mp_main__ - INFO - Worker process: Initializing WebDriver...
+2025-07-01 15:22:34,142 - __mp_main__ - ERROR - Error within scraping worker process: name 'get_webdriver' is not defined
+Traceback (most recent call last):
+  File "C:\Nikhil\gem-bid-scraper\backend\app.py", line 196, in run_scraping_task_with_timeout
+    driver = get_webdriver()
+             ^^^^^^^^^^^^^
+NameError: name 'get_webdriver' is not defined
+2025-07-01 15:22:34,211 - __main__ - ERROR - An unexpected error occurred: name 'get_webdriver' is not defined
+pebble.common.types.RemoteTraceback: Traceback (most recent call last):
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\site-packages\pebble\common\process.py", line 65, in process_execute
+    return Result(ResultStatus.SUCCESS, function(*args, **kwargs))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\site-packages\pebble\common\process.py", line 138, in _trampoline
+    return function(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Nikhil\gem-bid-scraper\backend\app.py", line 196, in run_scraping_task_with_timeout
+    driver = get_webdriver()
+             ^^^^^^^^^^^^^
+NameError: name 'get_webdriver' is not defined
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Nikhil\gem-bid-scraper\backend\app.py", line 179, in scrape
+    result = future.result()  # Blocks until complete or timeout
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'get_webdriver' is not defined
+2025-07-01 15:22:34,222 - __main__ - INFO - Request completed: POST /scrape [f72ccc0a7b1d6803] - 500 (1.48s)
+2025-07-01 15:22:34,222 - werkzeug - INFO - 127.0.0.1 - - [01/Jul/2025 15:22:34] "[35m[1mPOST /scrape HTTP/1.1[0m" 500 -
+2025-07-01 15:25:35,537 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:35+0530 lvl=info msg="received stop request" obj=app stopReq="{err:<nil> restart:false}"
+2025-07-01 15:25:35,539 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:35+0530 lvl=info msg="session closing" obj=tunnels.session err=nil
+2025-07-01 15:25:35,541 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:35+0530 lvl=info msg="accept failed" obj=tunnels.session obj=csess id=99ba7a85de0d err="reconnecting session closed"
+2025-07-01 15:25:35,541 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:35+0530 lvl=info msg="failed to accept connection: Listener closed" obj=tunnels.session clientid=fe2b7c6533634a945fd3dab6ee3bbfc5
+2025-07-01 15:25:35,542 - pyngrok.process.ngrok - WARNING - t=2025-07-01T15:25:35+0530 lvl=warn msg="Stopping forwarder" name=http-5001-1a3708cd-4876-4e50-a9a8-03bfd889a413 acceptErr="failed to accept connection: Listener closed"
+2025-07-01 15:25:35,542 - pyngrok.process.ngrok - WARNING - t=2025-07-01T15:25:35+0530 lvl=warn msg="Error restarting forwarder" name=http-5001-1a3708cd-4876-4e50-a9a8-03bfd889a413 err="failed to start tunnel: session closed"
+2025-07-01 15:25:35,545 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:35+0530 lvl=info msg="no more state changes" obj=tunnels.session
+2025-07-01 15:25:38,372 - pyngrok.ngrok - INFO - Opening tunnel named: http-5001-2f84fdfb-6bac-4d32-b27a-9af4e6f84311
+2025-07-01 15:25:38,406 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg="no configuration paths supplied"
+2025-07-01 15:25:38,407 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg="using configuration at default config path" path="C:\\Users\\Nikhil Reddy Sagili\\AppData\\Local/ngrok/ngrok.yml"
+2025-07-01 15:25:38,407 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg="open config file" path="C:\\Users\\Nikhil Reddy Sagili\\AppData\\Local\\ngrok\\ngrok.yml" err=nil
+2025-07-01 15:25:38,430 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+2025-07-01 15:25:38,673 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg="client session established" obj=tunnels.session
+2025-07-01 15:25:38,674 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg="tunnel session started" obj=tunnels.session
+2025-07-01 15:25:38,703 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg=start pg=/api/tunnels id=4078827e23a22db9
+2025-07-01 15:25:38,704 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg=end pg=/api/tunnels id=4078827e23a22db9 status=200 dur=0s
+2025-07-01 15:25:38,705 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg=start pg=/api/tunnels id=a18095e5b05da9df
+2025-07-01 15:25:38,706 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg=end pg=/api/tunnels id=a18095e5b05da9df status=200 dur=0s
+2025-07-01 15:25:38,706 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg=start pg=/api/tunnels id=c97b5e03bde3fc81
+2025-07-01 15:25:38,706 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg=end pg=/api/tunnels id=c97b5e03bde3fc81 status=200 dur=0s
+2025-07-01 15:25:38,706 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg=start pg=/api/tunnels id=bc621484eacc55d3
+2025-07-01 15:25:38,764 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg="started tunnel" obj=tunnels name=http-5001-2f84fdfb-6bac-4d32-b27a-9af4e6f84311 addr=http://localhost:5001 url=https://f916-2405-201-c00a-b819-71e2-27e5-912d-32.ngrok-free.app
+2025-07-01 15:25:38,767 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:25:38+0530 lvl=info msg=end pg=/api/tunnels id=bc621484eacc55d3 status=201 dur=55.0145ms
+2025-07-01 15:25:38,793 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2025-07-01 15:25:38,794 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-01 15:26:35,515 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:26:35+0530 lvl=info msg="join connections" obj=join id=98a69244ab18 l=127.0.0.1:5001 r=[2405:201:c00a:b819:71e2:27e5:912d:32]:60274
+2025-07-01 15:26:35,524 - __main__ - INFO - Request started: OPTIONS /scrape [bee58152810cb833]
+2025-07-01 15:26:35,524 - __main__ - INFO - Request completed: OPTIONS /scrape [bee58152810cb833] - 200 (0.00s)
+2025-07-01 15:26:35,527 - werkzeug - INFO - 127.0.0.1 - - [01/Jul/2025 15:26:35] "OPTIONS /scrape HTTP/1.1" 200 -
+2025-07-01 15:26:35,597 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:26:35+0530 lvl=info msg="join connections" obj=join id=91982fde1574 l=127.0.0.1:5001 r=[2405:201:c00a:b819:71e2:27e5:912d:32]:60274
+2025-07-01 15:26:35,597 - __main__ - INFO - Request started: POST /scrape [d4b4d2a0f0f002d6]
+2025-07-01 15:26:35,608 - __main__ - INFO - Starting scrape for https://bidplus.gem.gov.in/advance-search from 2025-06-29 to 2025-07-01
+2025-07-01 15:26:36,846 - __mp_main__ - ERROR - Error within scraping worker process: cannot import name 'get_webdriver' from 'utils.driver_setup' (C:\Nikhil\gem-bid-scraper\backend\utils\driver_setup.py)
+Traceback (most recent call last):
+  File "C:\Nikhil\gem-bid-scraper\backend\app.py", line 195, in run_scraping_task_with_timeout
+    from utils.driver_setup import get_webdriver
+ImportError: cannot import name 'get_webdriver' from 'utils.driver_setup' (C:\Nikhil\gem-bid-scraper\backend\utils\driver_setup.py)
+2025-07-01 15:26:36,859 - __main__ - ERROR - An unexpected error occurred: cannot import name 'get_webdriver' from 'utils.driver_setup' (C:\Nikhil\gem-bid-scraper\backend\utils\driver_setup.py)
+pebble.common.types.RemoteTraceback: Traceback (most recent call last):
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\site-packages\pebble\common\process.py", line 65, in process_execute
+    return Result(ResultStatus.SUCCESS, function(*args, **kwargs))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\site-packages\pebble\common\process.py", line 138, in _trampoline
+    return function(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Nikhil\gem-bid-scraper\backend\app.py", line 195, in run_scraping_task_with_timeout
+    from utils.driver_setup import get_webdriver
+ImportError: cannot import name 'get_webdriver' from 'utils.driver_setup' (C:\Nikhil\gem-bid-scraper\backend\utils\driver_setup.py)
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Nikhil\gem-bid-scraper\backend\app.py", line 179, in scrape
+    result = future.result()  # Blocks until complete or timeout
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+ImportError: cannot import name 'get_webdriver' from 'utils.driver_setup' (C:\Nikhil\gem-bid-scraper\backend\utils\driver_setup.py)
+2025-07-01 15:26:36,861 - __main__ - INFO - Request completed: POST /scrape [d4b4d2a0f0f002d6] - 500 (1.26s)
+2025-07-01 15:26:36,861 - werkzeug - INFO - 127.0.0.1 - - [01/Jul/2025 15:26:36] "[35m[1mPOST /scrape HTTP/1.1[0m" 500 -
+2025-07-01 15:27:58,747 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:27:58+0530 lvl=info msg="received stop request" obj=app stopReq="{err:<nil> restart:false}"
+2025-07-01 15:27:58,748 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:27:58+0530 lvl=info msg="session closing" obj=tunnels.session err=nil
+2025-07-01 15:27:58,749 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:27:58+0530 lvl=info msg="accept failed" obj=tunnels.session obj=csess id=4452ed69d1fd err="reconnecting session closed"
+2025-07-01 15:27:58,751 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:27:58+0530 lvl=info msg="failed to accept connection: Listener closed" obj=tunnels.session clientid=bfe88710ce37697ca215022534ba2e8f
+2025-07-01 15:27:58,752 - pyngrok.process.ngrok - WARNING - t=2025-07-01T15:27:58+0530 lvl=warn msg="Stopping forwarder" name=http-5001-2f84fdfb-6bac-4d32-b27a-9af4e6f84311 acceptErr="failed to accept connection: Listener closed"
+2025-07-01 15:28:04,211 - pyngrok.ngrok - INFO - Opening tunnel named: http-5001-30c8e81f-eba0-4de9-b6ac-a440f8954250
+2025-07-01 15:28:04,270 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg="no configuration paths supplied"
+2025-07-01 15:28:04,271 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg="using configuration at default config path" path="C:\\Users\\Nikhil Reddy Sagili\\AppData\\Local/ngrok/ngrok.yml"
+2025-07-01 15:28:04,271 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg="open config file" path="C:\\Users\\Nikhil Reddy Sagili\\AppData\\Local\\ngrok\\ngrok.yml" err=nil
+2025-07-01 15:28:04,298 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+2025-07-01 15:28:04,534 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg="client session established" obj=tunnels.session
+2025-07-01 15:28:04,534 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg="tunnel session started" obj=tunnels.session
+2025-07-01 15:28:04,565 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg=start pg=/api/tunnels id=00ef1c34603f102f
+2025-07-01 15:28:04,567 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg=end pg=/api/tunnels id=00ef1c34603f102f status=200 dur=0s
+2025-07-01 15:28:04,568 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg=start pg=/api/tunnels id=91579730b6b8fb58
+2025-07-01 15:28:04,569 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg=end pg=/api/tunnels id=91579730b6b8fb58 status=200 dur=0s
+2025-07-01 15:28:04,571 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg=start pg=/api/tunnels id=ddc5d3de09f816be
+2025-07-01 15:28:04,573 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg=end pg=/api/tunnels id=ddc5d3de09f816be status=200 dur=0s
+2025-07-01 15:28:04,576 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg=start pg=/api/tunnels id=b6412b1d9fe4cc9c
+2025-07-01 15:28:04,637 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg="started tunnel" obj=tunnels name=http-5001-30c8e81f-eba0-4de9-b6ac-a440f8954250 addr=http://localhost:5001 url=https://2b5f-2405-201-c00a-b819-71e2-27e5-912d-32.ngrok-free.app
+2025-07-01 15:28:04,638 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:04+0530 lvl=info msg=end pg=/api/tunnels id=b6412b1d9fe4cc9c status=201 dur=67.4959ms
+2025-07-01 15:28:04,663 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2025-07-01 15:28:04,663 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-01 15:28:09,299 - pyngrok.process.ngrok - WARNING - t=2025-07-01T15:28:09+0530 lvl=warn msg="failed to check for update" obj=updater err="Post \"https://update.equinox.io/check\": context deadline exceeded"
+2025-07-01 15:28:19,417 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:19+0530 lvl=info msg="join connections" obj=join id=543a0dca072b l=127.0.0.1:5001 r=[2405:201:c00a:b819:71e2:27e5:912d:32]:60608
+2025-07-01 15:28:19,419 - __main__ - INFO - Request started: OPTIONS /scrape [2727f9f60df0c68a]
+2025-07-01 15:28:19,421 - __main__ - INFO - Request completed: OPTIONS /scrape [2727f9f60df0c68a] - 200 (0.00s)
+2025-07-01 15:28:19,423 - werkzeug - INFO - 127.0.0.1 - - [01/Jul/2025 15:28:19] "OPTIONS /scrape HTTP/1.1" 200 -
+2025-07-01 15:28:19,508 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:28:19+0530 lvl=info msg="join connections" obj=join id=f34640d5f017 l=127.0.0.1:5001 r=[2405:201:c00a:b819:71e2:27e5:912d:32]:60608
+2025-07-01 15:28:19,510 - __main__ - INFO - Request started: POST /scrape [2b7a2648404040bf]
+2025-07-01 15:28:19,511 - __main__ - INFO - Starting scrape for https://bidplus.gem.gov.in/advance-search from 2025-06-29 to 2025-07-01
+2025-07-01 15:28:20,813 - __mp_main__ - INFO - Worker process: Initializing WebDriver...
+2025-07-01 15:28:20,813 - utils.driver_setup - INFO - Setting up Chrome WebDriver with advanced anti-detection...
+2025-07-01 15:28:20,844 - WDM - INFO - ====== WebDriver manager ======
+2025-07-01 15:28:22,077 - WDM - INFO - Get LATEST chromedriver version for google-chrome
+2025-07-01 15:28:22,173 - WDM - INFO - Get LATEST chromedriver version for google-chrome
+2025-07-01 15:28:22,238 - WDM - INFO - Driver [C:\Users\Nikhil Reddy Sagili\.wdm\drivers\chromedriver\win64\137.0.7151.119\chromedriver-win32/chromedriver.exe] found in cache
+2025-07-01 15:28:23,402 - utils.driver_setup - INFO - WebDriver setup complete.
+2025-07-01 15:28:23,406 - __mp_main__ - ERROR - Error within scraping worker process: GemBidScraper.__init__() takes 1 positional argument but 2 were given
+Traceback (most recent call last):
+  File "C:\Nikhil\gem-bid-scraper\backend\app.py", line 201, in run_scraping_task_with_timeout
+    scraper = GemBidScraper(driver)
+              ^^^^^^^^^^^^^^^^^^^^^
+TypeError: GemBidScraper.__init__() takes 1 positional argument but 2 were given
+2025-07-01 15:28:23,407 - __mp_main__ - INFO - Worker process: Cleaning up WebDriver...
+2025-07-01 15:28:25,825 - __main__ - ERROR - An unexpected error occurred: GemBidScraper.__init__() takes 1 positional argument but 2 were given
+pebble.common.types.RemoteTraceback: Traceback (most recent call last):
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\site-packages\pebble\common\process.py", line 65, in process_execute
+    return Result(ResultStatus.SUCCESS, function(*args, **kwargs))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\site-packages\pebble\common\process.py", line 138, in _trampoline
+    return function(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Nikhil\gem-bid-scraper\backend\app.py", line 201, in run_scraping_task_with_timeout
+    scraper = GemBidScraper(driver)
+              ^^^^^^^^^^^^^^^^^^^^^
+TypeError: GemBidScraper.__init__() takes 1 positional argument but 2 were given
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Nikhil\gem-bid-scraper\backend\app.py", line 179, in scrape
+    result = future.result()  # Blocks until complete or timeout
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Nikhil Reddy Sagili\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+TypeError: GemBidScraper.__init__() takes 1 positional argument but 2 were given
+2025-07-01 15:28:25,834 - __main__ - INFO - Request completed: POST /scrape [2b7a2648404040bf] - 500 (6.32s)
+2025-07-01 15:28:25,834 - werkzeug - INFO - 127.0.0.1 - - [01/Jul/2025 15:28:25] "[35m[1mPOST /scrape HTTP/1.1[0m" 500 -
+2025-07-01 15:29:32,964 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:29:32+0530 lvl=info msg="received stop request" obj=app stopReq="{err:<nil> restart:false}"
+2025-07-01 15:29:32,967 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:29:32+0530 lvl=info msg="session closing" obj=tunnels.session err=nil
+2025-07-01 15:29:32,967 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:29:32+0530 lvl=info msg="accept failed" obj=tunnels.session obj=csess id=d3f98eed292c err="reconnecting session closed"
+2025-07-01 15:29:32,967 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:29:32+0530 lvl=info msg="failed to accept connection: Listener closed" obj=tunnels.session clientid=cb102578d660c449867602ef40612491
+2025-07-01 15:29:32,969 - pyngrok.process.ngrok - WARNING - t=2025-07-01T15:29:32+0530 lvl=warn msg="Stopping forwarder" name=http-5001-30c8e81f-eba0-4de9-b6ac-a440f8954250 acceptErr="failed to accept connection: Listener closed"
+2025-07-01 15:29:32,969 - pyngrok.process.ngrok - INFO - t=2025-07-01T15:29:32+0530 lvl=info msg="no more state changes" obj=tunnels.session
+2025-07-01 15:29:32,971 - pyngrok.process.ngrok - WARNING - t=2025-07-01T15:29:32+0530 lvl=warn msg="Error restarting forwarder" name=http-5001-30c8e81f-eba0-4de9-b6ac-a440f8954250 err="failed to start tunnel: session closed"

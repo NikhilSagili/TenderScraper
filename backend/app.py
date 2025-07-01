@@ -1,82 +1,13 @@
-import os
-import time
-import logging
-from functools import wraps
-from datetime import datetime, timedelta
-from concurrent.futures import TimeoutError
-
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-import pandas as pd
-from pebble import concurrent
-
 from scrapers.gem_scraper import GemBidScraper
-
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('app.log')
-    ]
-)
-logger = logging.getLogger(__name__)
+from utils.driver_setup import get_webdriver
+from datetime import datetime, timedelta
+import pandas as pd
+from pyngrok import ngrok
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max payload
 
-# Configure CORS with additional headers for long-running requests
-CORS(app, resources={
-    r"/*": {
-        "origins": ["https://nikhilsagili.github.io", "http://localhost:3000"],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "X-Requested-With"],
-        "expose_headers": ["X-Progress", "X-Status"],
-        "supports_credentials": True,
-        "max_age": 3600
-    }
-})
-
-# Request hooks
-@app.before_request
-def before_request():
-    """Set up request context."""
-    g.start_time = time.time()
-    g.request_id = os.urandom(8).hex()
-    if request.path != '/health':
-        logger.info(f"Request started: {request.method} {request.path} [{g.request_id}]")
-
-@app.after_request
-def after_request(response):
-    """Clean up after request and log completion."""
-    # Calculate request duration
-    duration = time.time() - g.start_time
-    
-    # Add response headers for CORS and timeouts
-    response.headers['X-Request-Duration'] = f"{duration:.2f}s"
-    response.headers['X-Request-ID'] = getattr(g, 'request_id', '')
-    response.headers['Keep-Alive'] = 'timeout=300, max=1000'
-    
-    if request.path != '/health':
-        logger.info(
-            f"Request completed: {request.method} {request.path} "
-            f"[{g.request_id}] - {response.status_code} ({duration:.2f}s)"
-        )
-    return response
-
-# Error handlers
-
-@app.errorhandler(500)
-def handle_server_error(e):
-    logger.error(f"Server error: {str(e)}", exc_info=True)
-    return jsonify({
-        "error": "Internal server error",
-        "message": "An unexpected error occurred"
-    }), 500
-
-# API endpoints
 @app.route('/', methods=['GET'])
 def index():
     """Root endpoint that provides basic API information."""
@@ -84,7 +15,6 @@ def index():
         "name": "GeM Bid Scraper API",
         "version": "1.0.0",
         "status": "operational",
-        "timeout": "1800s",
         "endpoints": {
             "health_check": "/health (GET)",
             "scrape": "/scrape (POST)"
@@ -131,11 +61,7 @@ def validate_date(date_str):
 
 @app.route('/scrape', methods=['POST'])
 def scrape():
-    """
-    API endpoint to trigger the scraper with progress tracking and timeout handling.
-    This endpoint can take a long time to complete (up to 30 minutes).
-    """
-    # Initialize request data and validate input
+    """API endpoint to trigger the scraper."""
     try:
         data = request.get_json()
         if not data:
@@ -144,7 +70,6 @@ def scrape():
         target_url = data.get('url')
         start_date_str = data.get('startDate')
         end_date_str = data.get('endDate')
-        state = data.get('state', 'ANDHRA PRADESH') # Default to AP if not provided
 
         # Input validation
         if not target_url:
@@ -159,78 +84,91 @@ def scrape():
         if start_date > end_date:
             return jsonify({"error": "Start date cannot be after end date"}), 400
             
-        # Convert string date to datetime object
-        try:
-            stop_date = datetime.strptime(start_date_str, '%Y-%m-%d')
-        except ValueError:
-            return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD"}), 400
+        # Add rate limiting check if needed
+        # if is_rate_limited():
+        #     return jsonify({"error": "Too many requests. Please try again later."}), 429
             
-        # Log the start of scraping
-        logger.info(f"Starting scrape for {target_url} from {start_date_str} to {end_date_str}")
-        
     except Exception as e:
-        logger.error(f"Error in input validation: {str(e)}", exc_info=True)
-        return jsonify({"error": f"Invalid request: {str(e)}"}), 400
+        app.logger.error(f"Error in input validation: {str(e)}")
+        return jsonify({"error": f"Invalid request: {str(e)}"}), 400 
+
+    if not target_url or not start_date_str or not end_date_str:
+        return jsonify({"error": "URL, start date, and end date are required"}), 400
 
     try:
-        # Use pebble to run the scraping task with a timeout
-        future = run_scraping_task_with_timeout(stop_date=stop_date, state=state)
-        result = future.result()  # Blocks until complete or timeout
-        return jsonify(result)
-    
-    except TimeoutError:
-        logger.error("Scraping task timed out after 30 minutes.")
-        return jsonify({"error": "Request timed out", "details": "The scraping process took too long to complete."}), 504
-    
-    except Exception as e:
-        logger.error(f"An unexpected error occurred: {str(e)}", exc_info=True)
-        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+        # Convert string dates from frontend to datetime objects
+        start_date_obj = datetime.strptime(start_date_str, '%Y-%m-%d')
+        end_date_obj = datetime.strptime(end_date_str, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD"}), 400
 
-@concurrent.process(timeout=1800)  # 30-minute timeout
-def run_scraping_task_with_timeout(stop_date, state):
-    """Runs the entire scraping process in a separate process with a timeout."""
     driver = None
     try:
-        logger.info("Worker process: Initializing WebDriver...")
+        print("Initializing webdriver...")
         driver = get_webdriver()
-        driver.set_page_load_timeout(300)
-        driver.set_script_timeout(300)
+        print("Webdriver initialized successfully")
         
+        print("Initializing scraper...")
         scraper = GemBidScraper(driver)
+        print("Scraper initialized successfully")
         
-        logger.info("Worker process: Loading page...")
-        scraper.load_page()
-        
-        logger.info(f"Worker process: Applying filters for state: {state}...")
-        if not scraper.apply_filters_and_search(state=state):
-            return {"message": "No results found for the selected criteria", "data": []}
-        
-        logger.info(f"Worker process: Starting scrape until {stop_date}...")
-        start_time = time.time()
-        bids_df = scraper.scrape_bids(stop_date=stop_date, max_pages=50)
-        duration = time.time() - start_time
-        
-        if bids_df.empty:
-            return {"message": "No bids found for the given criteria", "data": []}
-        
-        logger.info(f"Worker process: Scraping completed in {duration:.1f}s. Found {len(bids_df)} bids.")
-        result_data = bids_df.to_dict(orient="records")
-        return {
-            "message": "Success",
-            "data": result_data,
-            "stats": {
-                "total_bids": len(result_data),
-                "duration_seconds": round(duration, 2),
-            }
-        }
+        try:
+            print("Loading page...")
+            scraper.load_page()
+            print("Page loaded successfully")
+            
+            print("Applying filters and searching...")
+            scraper.apply_filters_and_search(state="ANDHRA PRADESH")
+            print("Filters applied successfully")
+            
+            print(f"Starting to scrape bids from {start_date_str} to {end_date_str}...")
+            bids_df = scraper.scrape_bids(start_date=start_date_obj, end_date=end_date_obj)
+            print(f"Scraping completed. Found {len(bids_df)} bids")
+            
+            if bids_df.empty:
+                print("No bids found for the given criteria")
+                return jsonify({"message": "No bids found for the given criteria", "data": []}), 200
+
+            # Convert DataFrame to list of dicts for JSON serialization
+            print("Converting results to JSON...")
+            result = bids_df.to_dict(orient="records")
+            return jsonify({"message": "Success", "data": result}), 200
+            
+        except Exception as scrape_error:
+            app.logger.error(f"Error during scraping: {str(scrape_error)}", exc_info=True)
+            return jsonify({
+                "error": "Scraping failed",
+                "details": str(scrape_error)
+            }), 500
+            
     except Exception as e:
-        logger.error(f"Error within scraping worker process: {str(e)}", exc_info=True)
-        # Re-raise to ensure the main thread catches it as a task failure
-        raise
+        app.logger.error(f"Error initializing scraper: {str(e)}", exc_info=True)
+        return jsonify({
+            "error": "Failed to initialize scraper",
+            "details": str(e)
+        }), 500
     finally:
         if driver:
-            logger.info("Worker process: Cleaning up WebDriver...")
             driver.quit()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    # app.run(debug=True, port=5001)
+    port = 5001
+    try:
+        # It's recommended to set your ngrok authtoken in your environment variables
+        # for a more stable experience.
+        public_url_obj = ngrok.connect(port, "http")
+        print(" ***********************************************************************************")
+        print(f" * Backend is running on: http://127.0.0.1:{port}")
+        print(f" * ngrok tunnel is active. Public URL: {public_url_obj.public_url}")
+        print(" * Copy this Public URL and paste it into the frontend's 'Backend URL' field.")
+        print(" ***********************************************************************************")
+    except Exception as e:
+        print(" ***********************************************************************************")
+        print(f" * Could not start ngrok tunnel: {e}")
+        print(f" * Backend is running locally. Use http://localhost:{port} for the frontend.")
+        print(" ***********************************************************************************")
+
+    # Start the Flask app. use_reloader=False is recommended with ngrok
+    # to prevent creating multiple tunnels when in debug mode.
+    app.run(debug=True, port=port, use_reloader=False)
