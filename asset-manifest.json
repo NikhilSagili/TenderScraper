@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/TenderScraper/static/css/main.e7288d16.css",
-    "main.js": "/TenderScraper/static/js/main.db9b5a5d.js",
+    "main.js": "/TenderScraper/static/js/main.771972bb.js",
     "static/js/453.670e15c7.chunk.js": "/TenderScraper/static/js/453.670e15c7.chunk.js",
     "index.html": "/TenderScraper/index.html",
     "main.e7288d16.css.map": "/TenderScraper/static/css/main.e7288d16.css.map",
-    "main.db9b5a5d.js.map": "/TenderScraper/static/js/main.db9b5a5d.js.map",
+    "main.771972bb.js.map": "/TenderScraper/static/js/main.771972bb.js.map",
     "453.670e15c7.chunk.js.map": "/TenderScraper/static/js/453.670e15c7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e7288d16.css",
-    "static/js/main.db9b5a5d.js"
+    "static/js/main.771972bb.js"
   ]
 }
