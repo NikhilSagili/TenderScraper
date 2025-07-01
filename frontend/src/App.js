@@ -201,7 +201,11 @@ function App() {
                                  <tbody>
                                      {bids.map((bid, index) => (
                                          <tr key={index}>
-                                             <td><a href={bid.bid_url} target="_blank" rel="noopener noreferrer">{bid.bid_number}</a></td>
+                                             <td>
+                                                 <a href={bid.bid_url} target="_blank" rel="noopener noreferrer">
+                                                     {bid.bid_number}
+                                                 </a>
+                                             </td>
                                              <td>{bid.items}</td>
                                              <td>{bid.quantity}</td>
                                              <td>{bid.department}</td>

@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from scrapers.gem_scraper import GemBidScraper
@@ -7,6 +8,9 @@ import pandas as pd
 from pyngrok import ngrok
 
 app = Flask(__name__)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 @app.route('/', methods=['GET'])
 def index():
@@ -98,39 +102,42 @@ def scrape():
     try:
         # Convert string dates from frontend to datetime objects
         start_date_obj = datetime.strptime(start_date_str, '%Y-%m-%d')
-        end_date_obj = datetime.strptime(end_date_str, '%Y-%m-%d')
+        # Set end_date to the end of the day to include all bids on that day
+        end_date_obj = datetime.strptime(end_date_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
     except ValueError:
         return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD"}), 400
 
     driver = None
     try:
-        print("Initializing webdriver...")
+        app.logger.info("Initializing webdriver...")
         driver = get_webdriver()
-        print("Webdriver initialized successfully")
+        app.logger.info("Webdriver initialized successfully")
         
-        print("Initializing scraper...")
-        scraper = GemBidScraper(driver)
-        print("Scraper initialized successfully")
+        app.logger.info("Initializing scraper...")
+        scraper = GemBidScraper(driver, app.logger)
+        app.logger.info("Scraper initialized successfully")
         
         try:
-            print("Loading page...")
+            app.logger.info("Loading page...")
             scraper.load_page()
-            print("Page loaded successfully")
+            app.logger.info("Page loaded successfully")
             
-            print("Applying filters and searching...")
-            scraper.apply_filters_and_search(state="ANDHRA PRADESH")
-            print("Filters applied successfully")
+            app.logger.info("Applying filters and searching...")
+            state = data.get("state")  # Get state from request payload
+            app.logger.info(f"Received state filter: {state}")
+            scraper.apply_filters_and_search(state=state)
+            app.logger.info("Filters applied successfully")
             
-            print(f"Starting to scrape bids from {start_date_str} to {end_date_str}...")
+            app.logger.info(f"Starting to scrape bids from {start_date_str} to {end_date_str}...")
             bids_df = scraper.scrape_bids(start_date=start_date_obj, end_date=end_date_obj)
-            print(f"Scraping completed. Found {len(bids_df)} bids")
+            app.logger.info(f"Scraping completed. Found {len(bids_df)} bids")
             
             if bids_df.empty:
-                print("No bids found for the given criteria")
+                app.logger.info("No bids found for the given criteria")
                 return jsonify({"message": "No bids found for the given criteria", "data": []}), 200
 
             # Convert DataFrame to list of dicts for JSON serialization
-            print("Converting results to JSON...")
+            app.logger.info("Converting results to JSON...")
             result = bids_df.to_dict(orient="records")
             return jsonify({"message": "Success", "data": result}), 200
             
@@ -158,16 +165,16 @@ if __name__ == '__main__':
         # It's recommended to set your ngrok authtoken in your environment variables
         # for a more stable experience.
         public_url_obj = ngrok.connect(port, "http")
-        print(" ***********************************************************************************")
-        print(f" * Backend is running on: http://127.0.0.1:{port}")
-        print(f" * ngrok tunnel is active. Public URL: {public_url_obj.public_url}")
-        print(" * Copy this Public URL and paste it into the frontend's 'Backend URL' field.")
-        print(" ***********************************************************************************")
+        app.logger.info("***********************************************************************************")
+        app.logger.info(f"* Backend is running on: http://127.0.0.1:{port}")
+        app.logger.info(f"* ngrok tunnel is active. Public URL: {public_url_obj.public_url}")
+        app.logger.info("* Copy this Public URL and paste it into the frontend's 'Backend URL' field.")
+        app.logger.info("***********************************************************************************")
     except Exception as e:
-        print(" ***********************************************************************************")
-        print(f" * Could not start ngrok tunnel: {e}")
-        print(f" * Backend is running locally. Use http://localhost:{port} for the frontend.")
-        print(" ***********************************************************************************")
+        app.logger.error("***********************************************************************************")
+        app.logger.error(f"* Could not start ngrok tunnel: {e}")
+        app.logger.error(f"* Backend is running locally. Use http://localhost:{port} for the frontend.")
+        app.logger.error("***********************************************************************************")
 
     # Start the Flask app. use_reloader=False is recommended with ngrok
     # to prevent creating multiple tunnels when in debug mode.
